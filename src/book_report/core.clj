@@ -51,8 +51,8 @@
          [(str s#) v#]))))
 
 (defn eval-str
-  [forms]
-  (with-out-str-and-value (eval `(do ~@forms))))
+  [form]
+  (with-out-str-and-value (eval form)))
 
 (defn format-eval
   [forms]
@@ -79,22 +79,20 @@
   (if (= 'notes (-> forms first first))
     (let [notes (-> forms first rest (format-notes))
           forms (rest forms)
-          code (format-code forms)
-          results (format-eval forms)]
+          code (format-code forms)]
       `(do (println (str "Chapter " ~section-id " :: " ~title))
            (println "\n  Notes:")
            (println ~notes)
            (println "")
            (println ~code)
            (print "   => ")
-           (println ~results)
+           (println (format-eval '(do ~@forms)))
            (println "\n")))
-    (let [code (format-code forms)
-          results (format-eval forms)]
+    (let [code (format-code forms)]
       `(do (println (str "Chapter " ~section-id " :: " ~title))
            (println ~code)
            (print "   => ")
-           (println ~results)
+           (println (format-eval '(do ~@forms)))
            (println "\n")))))
 
 (comment

@@ -18,7 +18,7 @@
   Suitable for list thread macros.
   Returns a vector with item appended to end of list."
   ([item list]
-   (append identity item list))
+   (append (fn [x & more] x) item list))
   ([f item list]
    (conj (vec list) (f item list))))
 
@@ -191,7 +191,6 @@
           (title "Add")
           (notes "Should return 2")
           (+ 1 1))
-   ;; test
    (lesson 1
            "This is a test lesson"
            (notes  "Should return 2")

@@ -3,24 +3,38 @@
             [clojure.pprint :refer [pprint]]))
 
 (defn format-return
-  [item list]
-  (if (> (count list) 1)
-    (str "      " item)
-    (str item)))
+  "Format the return value based on the number of lines.
+  Takes a return value string and lines of output.
+  Returns string of output lines followed by return value."
+  [return-value lines]
+  (str
+   (when (> (count lines) 1)
+     "      ")
+   return-value))
 
 (defn append
+  "Appends an item to a list.
+  Takes an optional formatter function, the new item, and a list.
+  Suitable for list thread macros.
+  Returns a vector with item appended to end of list."
   ([item list]
    (append identity item list))
   ([f item list]
    (conj (vec list) (f item list))))
 
 (defn format-note
+  "Align notes vertically.
+  Takes a list of strings.
+  Returns a list of strings."
   [[note & lines]]
-  (cons note
-        (->> lines
-             (map #(str "     " (string/trim %))))))
+  (->> lines
+       (map #(str "     " (string/trim %)))
+       (cons note)))
 
 (defn format-notes
+  "Takes a list of notes and formats them so that newlines
+  are aligned vertically and separate notes are prefixed with a - (dash).
+  Returns sequence of clojure forms to print list of notes."
   [notes]
   (->> notes
        (map #(str "   - " (string/trim %)))
@@ -30,12 +44,21 @@
        (seq)))
 
 (defn format-code-lines
+  "Format code forms as 2-space indented strings.
+  Takes a list of forms.
+  Returns list of strings."
   [lines]
   (->> lines
        (map #(str "  " %))
        (string/join "\n")))
 
 (defn space-code-blocks
+  "Groups code blocks based on line-count. If a code block is a single line then
+  space them out with a single line.
+  If a code block spans multiple lines, space the code block with two lines.
+  Kind of like a conditional (clojure.string/join \"\n\" coll)
+  Takes the aggregate code string and the next block of code string.
+  Returns the aggregate code string."
   [code-str block]
   (let [line-count (count (string/split block #"\n"))]
     (if (< line-count 2)
@@ -43,6 +66,9 @@
       (str code-str block "\n\n"))))
 
 (defn format-code
+  "Formats each form as an intented list of strings.
+  Takes a list of forms to print.
+  Returns a list of clojure forms to print the forms as a single code string."
   [forms]
   (->> forms
        (map #(with-out-str (pprint %)))
@@ -54,6 +80,9 @@
        (seq)))
 
 (defmacro with-out-str-and-value
+  "Similar to with-out-str but returns list of output and return value.
+  Takes body expression forms.
+  Returns vector [output-str, return-value]."
   [& body]
   `(let [s# (new java.io.StringWriter)]
      (binding [*out* s#]
@@ -61,16 +90,24 @@
          [(str s#) v#]))))
 
 (defn run-code
+  "Takes a list of forms and wraps it in a list of do commands.
+  Takes a list of expression forms
+  Returns list of symbols to eval later."
   [forms]
   `(do ~@forms))
 
 (defn eval-str
+  "Takes a form expression.
+  Returns a list of [output-str, return-value]."
   [form]
   (with-out-str-and-value (eval form)))
 
 (defn format-eval
+  "Evaluates forms, captures output, and aligns it to the indented eval column.
+  Takes a list of form expressions.
+  Returns list of clojure forms to print code evaluation results."
   [forms]
-  (let [[output return-value] (eval-str `(do ~@forms))
+  (let [[output return-value] (eval-str (run-code forms))
         [first-line & lines] (string/split output #"\n")]
     (->> lines
          (map string/trim)
@@ -83,16 +120,21 @@
          (seq))))
 
 (defn format-title
+  "Display a title indented with 2 spaces and an underline.
+  Takes a list of title strings.
+  Returns list of clojure forms to print the title."
   [titles]
   (let [title (apply str "  # " titles)
         underline (apply str "\n  " (repeat (count title) "–"))
         title (str title underline)]
     `(println ~title)))
 
-(comment
- (eval (format-title "Hello World")))
-
-(defn op?
+(defn eval-form?
+  "Determine if a form is a special case form used by the lesson macro. If it is
+  then return false otherwise return true for normal cojure forms.
+  Used to group eval statements between notes, title, or run forms
+  Takes a clojure form list
+  Returns true or false."
   [form]
   (if (seq? form)
     (not (contains? '#{::value notes run title} (first form)))
@@ -106,7 +148,8 @@
           \"Calling functions\"
           (title \"Addition example\")
           (notes \"Should return 2\")
-          (+ 1 1))
+          (run (def add +))
+          (add 1 1))
   "
   [section-id title & forms]
   (loop [forms forms
@@ -124,7 +167,7 @@
                                          (append-line
                                           (format-notes form-args)))
             (= form-head 'run)    (do
-                                    (eval `(do ~@form-args))
+                                    (eval (run-code form-args))
                                     (recur remaining output))
 
             (= form-head 'title) (recur remaining
@@ -132,7 +175,7 @@
             :else
               ;; Scoop up all forms between one for the special case forms
               ;; above
-              (let [[eval-forms remaining] (split-with op? forms)]
+              (let [[eval-forms remaining] (split-with eval-form? forms)]
                 (recur remaining
                        (append-line (format-code eval-forms)
                                     (format-eval eval-forms))))))))
@@ -148,6 +191,7 @@
           (title "Add")
           (notes "Should return 2")
           (+ 1 1))
+   ;; test
    (lesson 1
            "This is a test lesson"
            (notes  "Should return 2")
@@ -187,4 +231,5 @@
            (run (defn add [x] (+ x 3)))
            (title "Look at x")
            (notes "x")
-           (add 3)))
+           (add 3))
+   (empty? 2))

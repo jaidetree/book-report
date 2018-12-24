@@ -108,12 +108,15 @@
   Returns list of clojure forms to print code evaluation results."
   [forms]
   (let [[output return-value] (eval-str (run-code forms))
-        [first-line & lines] (string/split output #"\n")]
+        [first-line & lines] (string/split-lines output)]
     (->> lines
          (map string/trim)
          (map #(str "      " %))
          (cons first-line)
-         (append format-return (pr-str return-value))
+         (append format-return
+                 (str
+                  (when (not-empty output) "      ")
+                  (pr-str return-value)))
          (remove empty?)
          (string/join "\n")
          (conj `[println "   ➜"])
@@ -140,6 +143,19 @@
     (not (contains? '#{::value notes run title} (first form)))
     true))
 
+(defn ->seq
+  "Checks if form is a sequence otherwise makes a sequence"
+  [form]
+  (if (seq? form)
+      form
+      (list ::value form)))
+
+(defn format-output
+  [output]
+  (let [output (seq output)]
+    `(do ~@output
+         (println ""))))
+
 (defmacro lesson
   "Render code and its output grouped as a lesson from a chapter.
   Takes a section-id number, title string, notes, and code forms.
@@ -152,15 +168,14 @@
           (add 1 1))
   "
   [section-id title & forms]
+  ;; TODO: Could this be broken up more? It's kind of a meaty chunker.
   (loop [forms forms
          output `[(println (str "Chapter " ~section-id " :: " ~title))]]
     (let [append-line #(apply conj output (conj %& `(println "")))
           form (first forms)
           remaining (rest forms)
-          [form-head & form-args] (if (seq? form)
-                                    form
-                                    (list ::value form))]
-      (cond (nil? form) `(do ~@(seq (conj output `(println ""))))
+          [form-head & form-args] (->seq form)]
+      (cond (nil? form) (format-output output)
             (= form-head ::value) (recur remaining
                                          (apply append-line form-args))
             (= form-head 'notes)  (recur remaining
@@ -231,4 +246,8 @@
            (title "Look at x")
            (notes "x")
            (add 3))
+   (lesson 9
+           "This is a test lesson"
+           (println "hello world")
+           (+ 1 2))
    (empty? 2))

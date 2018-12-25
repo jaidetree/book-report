@@ -90,6 +90,38 @@
     (is (= [false false false false]
            (map eval-form? '((:book-report.core/value) (notes) (run) (title)))))))
 
+(deftest format-output-test
+  (testing "Should return a list of forms wrapped in a do form"
+    (is (= `(do (println "hello world") 2)
+           (format-output `((println "hello world") 2))))))
+
+(deftest ->seq-test
+  (testing "Should return a form if sequence"
+    (is (= '(+ 1 2)
+           (->seq '(+ 1 2)))))
+  (testing "Should return a form if not a sequence"
+    (is (= '(:book-report.core/value 2)
+           (->seq 2)))))
+
+(deftest process-internal-forms-test
+   (testing "Should return list of forms to display notes"
+     (is (= `(println "  Notes:\n" "   - Note")
+            (process-internal-forms '(notes "Note")))))
+   (testing "Should return list of forms to run code"
+     (is (= `(eval (do (def ~'x 42)))
+            (process-internal-forms '(run (def x 42))))))
+   (testing "Should return list of forms to display a title"
+     (is (= `(println "  # Title\n  –––––––––")
+            (process-internal-forms '(title "Title")))))
+   (testing "Should return nil on normal forms"
+     (is (= nil
+            (process-internal-forms '(+ 1 2))))))
+
+(deftest display-test
+  (testing "Should append list of forms to output vector"
+    (is (= `[(println "hello world") (println "")]
+           (display [] `(println "hello world"))))))
+
 (deftest lesson-test
   (testing "Should output a formatted lesson to stdout"
     (is

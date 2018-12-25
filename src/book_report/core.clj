@@ -106,8 +106,8 @@
   "Evaluates forms, captures output, and aligns it to the indented eval column.
   Takes a list of form expressions.
   Returns list of clojure forms to print code evaluation results."
-  [forms]
-  (let [[output return-value] (eval-str (run-code forms))
+  [form]
+  (let [[output return-value] (eval-str form)
         [first-line & lines] (string/split-lines output)]
     (->> lines
          (map string/trim)
@@ -119,8 +119,7 @@
                   (pr-str return-value)))
          (remove empty?)
          (string/join "\n")
-         (conj `[println "   ➜"])
-         (seq))))
+         (str "   ➜ "))))
 
 (defn format-title
   "Display a title indented with 2 spaces and an underline.
@@ -165,9 +164,8 @@
   (let [[form-head & form-args] (->seq form)]
     (case form-head
       notes   (format-notes form-args)
-      run     (do (eval (run-code form-args)) ::run)
+      run     `(eval ~(run-code form-args))
       title   (format-title form-args)
-      ::value nil
       nil)))
 
 (defn display
@@ -178,6 +176,8 @@
        (remove empty?)
        (reduce conj (vec output))
        (append `(println ""))))
+
+
 
 (defmacro lesson
   "Render code and its output grouped as a lesson from a chapter.
@@ -193,14 +193,13 @@
   [section-id title & forms]
   (loop [forms forms
          output `[(println (str "Chapter " ~section-id " :: " ~title "\n"))]]
+    (pprint {:output output})
     (if (empty? forms)
       (format-output output)
       (let [form (first forms)
             remaining (rest forms)
             parsed-forms (process-internal-forms form)]
         (cond
-          (= parsed-forms ::run)   (recur remaining
-                                          output)
           (some? parsed-forms)     (recur remaining
                                           (display output parsed-forms))
           :else
@@ -208,7 +207,7 @@
             (recur remaining
                    (display output
                             (format-code eval-forms)
-                            (format-eval eval-forms)))))))))
+                            `(println (format-eval ~(run-code eval-forms)))))))))))
 
 (comment
   (macroexpand
@@ -265,7 +264,8 @@
           "This is a test lesson"
           (println "hello world")
           (+ 1 2))
-  (lesson 1 "Lesson title"
+  (lesson 10
+          "Lesson title"
           (notes "Note")
           (+ 1 2)
           (title "Title")

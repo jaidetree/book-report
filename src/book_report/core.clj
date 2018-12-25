@@ -143,6 +143,13 @@
     (not (contains? '#{::value notes run title} (first form)))
     true))
 
+(defn format-output
+  "Takes a vector of forms.
+  Returns a form to run a sequence of forms."
+  [forms]
+  (let [output (seq forms)]
+    `(do ~@output)))
+
 (defn ->seq
   "Checks if form is a sequence otherwise makes a sequence"
   [form]
@@ -150,11 +157,27 @@
       form
       (list ::value form)))
 
-(defn format-output
-  [output]
-  (let [output (seq output)]
-    `(do ~@output
-         (println ""))))
+(defn process-internal-forms
+  "Process a form if it contains an internal form such as notes, run, or title.
+  Takes a form like `'(+ 1 2)`
+  Returns a list of forms to evaluate."
+  [form]
+  (let [[form-head & form-args] (->seq form)]
+    (case form-head
+      notes   (format-notes form-args)
+      run     (do (eval (run-code form-args)) ::run)
+      title   (format-title form-args)
+      ::value nil
+      nil)))
+
+(defn display
+  "Takes a vector of forms to evaluate and a list of forms to append.
+  Returns a vector of forms with new lists conjoined to the end."
+  [output & form-lists]
+  (->> form-lists
+       (remove empty?)
+       (reduce conj (vec output))
+       (append `(println ""))))
 
 (defmacro lesson
   "Render code and its output grouped as a lesson from a chapter.
@@ -168,86 +191,84 @@
           (add 1 1))
   "
   [section-id title & forms]
-  ;; TODO: Could this be broken up more? It's kind of a meaty chunker.
   (loop [forms forms
-         output `[(println (str "Chapter " ~section-id " :: " ~title))]]
-    (let [append-line #(apply conj output (conj %& `(println "")))
-          form (first forms)
-          remaining (rest forms)
-          [form-head & form-args] (->seq form)]
-      (cond (nil? form) (format-output output)
-            (= form-head ::value) (recur remaining
-                                         (apply append-line form-args))
-            (= form-head 'notes)  (recur remaining
-                                         (append-line
-                                          (format-notes form-args)))
-            (= form-head 'run)    (do
-                                    (eval (run-code form-args))
-                                    (recur remaining output))
-
-            (= form-head 'title) (recur remaining
-                                        (append-line (format-title form-args)))
-            :else
-              ;; Scoop up all forms between one for the special case forms
-              ;; above
-              (let [[eval-forms remaining] (split-with eval-form? forms)]
-                (recur remaining
-                       (append-line (format-code eval-forms)
-                                    (format-eval eval-forms))))))))
+         output `[(println (str "Chapter " ~section-id " :: " ~title "\n"))]]
+    (if (empty? forms)
+      (format-output output)
+      (let [form (first forms)
+            remaining (rest forms)
+            parsed-forms (process-internal-forms form)]
+        (cond
+          (= parsed-forms ::run)   (recur remaining
+                                          output)
+          (some? parsed-forms)     (recur remaining
+                                          (display output parsed-forms))
+          :else
+          (let [[eval-forms remaining] (split-with eval-form? forms)]
+            (recur remaining
+                   (display output
+                            (format-code eval-forms)
+                            (format-eval eval-forms)))))))))
 
 (comment
-   (macroexpand
-    '(lesson 1
-             "This is a test lesson"
-             (notes  "Should return 2")
-             (+ 1 1)))
-   (lesson 0
+  (macroexpand
+   '(lesson 1
+            "This is a test lesson"
+            (notes  "Should return 2")
+            (+ 1 1)))
+  (lesson 0
           "Calling functions"
           (title "Add")
           (notes "Should return 2")
           (+ 1 1))
-   (lesson 1
-           "This is a test lesson"
-           (notes  "Should return 2")
-           (+ 1 1))
-   (lesson 2
-           "This is a test lesson"
-           (notes "Should return 2")
-           (+ 1 1)
-           (+ 2 3))
-   (lesson 3
-           "This is a test lesson"
-           (+ 1 1))
-   (lesson 4
-           "This is a test lesson"
-           (notes  "Should return 2
+  (lesson 1
+          "This is a test lesson"
+          (notes  "Should return 2")
+          (+ 1 1))
+  (lesson 2
+          "This is a test lesson"
+          (notes "Should return 2")
+          (+ 1 1)
+          (+ 2 3))
+  (lesson 3
+          "This is a test lesson"
+          (+ 1 1))
+  (lesson 4
+          "This is a test lesson"
+          (notes  "Should return 2
                    Plus another note")
-           (+ 1 1))
-   (lesson 5
-           "This is a test lesson"
-           (notes  "Should return 2")
-           (+ 1 1))
-   (lesson 6
-           "This is a test lesson"
-           (notes "Should return 2")
-           (+ 1 3)
-           (notes "x")
-           2)
-   (lesson 7
-           "This is a test lesson"
-           (notes "Should return 2")
-           (run (defn add [x] (+ x 3)))
-           (notes "x")
-           (add 3))
-   (lesson 8
-           "This is a test lesson"
-           (notes "Should return 2")
-           (run (defn add [x] (+ x 3)))
-           (title "Look at x")
-           (notes "x")
-           (add 3))
-   (lesson 9
-           "This is a test lesson"
-           (println "hello world")
-           (+ 1 2))
-   (empty? 2))
+          (+ 1 1))
+  (lesson 5
+          "This is a test lesson"
+          (notes  "Should return 2")
+          (+ 1 1))
+  (lesson 6
+          "This is a test lesson"
+          (notes "Should return 2")
+          (+ 1 3)
+          (notes "x")
+          2)
+  (lesson 7
+          "This is a test lesson"
+          (notes "Should return 2")
+          (run (defn add [x] (+ x 3)))
+          (notes "x")
+          (add 3))
+  (lesson 8
+          "This is a test lesson"
+          (notes "Should return 2")
+          (run (defn add [x] (+ x 3)))
+          (title "Look at x")
+          (notes "x")
+          (add 3))
+  (lesson 9
+          "This is a test lesson"
+          (println "hello world")
+          (+ 1 2))
+  (lesson 1 "Lesson title"
+          (notes "Note")
+          (+ 1 2)
+          (title "Title")
+          (run (def x 3))
+          (+ x 1))
+  (empty? 2))

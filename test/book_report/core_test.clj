@@ -1,6 +1,7 @@
 (ns book-report.core-test
   (:require [clojure.test :refer :all]
-            [book-report.core :refer :all]))
+            [book-report.core :refer :all]
+            [clojure.string :refer [split]]))
 
 (deftest format-return-test
   (testing "Should return a string with no indentation with 1 or less line"
@@ -18,7 +19,7 @@
            (append 4 [1 2 3]))))
   (testing "Should append an item to a list with formatter function"
     (is (= [1 2 3 4]
-           (append (fn [x _] (inc x)) 3 [1 2 3])))))
+           (append (fn [v _] (inc v)) 3 [1 2 3])))))
 
 (deftest format-note-test
   (testing "Should append indented lines to a note str"
@@ -91,11 +92,26 @@
 
 (deftest lesson-test
   (testing "Should output a formatted lesson to stdout"
-    (let [output (with-out-str (lesson 1 "Lesson title"
-                                       (notes "Note")
-                                       (+ 1 2)
-                                       (title "Title")
-                                       (run (def x 3))
-                                       (+ x 1)))]
-      (is (= "Chapter 1 :: Lesson title\n\n  Notes:\n    - Note\n\n  (+ 1 2)\n   ➜ 3\n\n  # Title\n  –––––––––\n\n  (+ x 1)\n   ➜ 4\n\n"
-             output)))))
+    (is
+     (let [output (split (with-out-str (lesson 1 "Lesson title"
+                                               (notes "Note")
+                                               (+ 1 2)
+                                               (title "Title")
+                                               (run (def x 3))
+                                               (+ x 1)))
+                         #"\n")]
+       (= ["Chapter 1 :: Lesson title"
+              ""
+              "  Notes:"
+              "    - Note"
+              ""
+              "  (+ 1 2)"
+              "   ➜ 3"
+              ""
+              "  # Title"
+              "  –––––––––"
+              ""
+              "  (+ x 1)"
+              "   ➜ 4"
+              ""
+             output])))))

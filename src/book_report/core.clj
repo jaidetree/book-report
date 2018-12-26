@@ -22,6 +22,14 @@
   ([f item list]
    (conj (vec list) (f item list))))
 
+(defn prepend-str
+  [substr s]
+  (str substr s))
+
+(defn append-str
+  [substr s]
+  (str s substr))
+
 (defn format-note
   "Align notes vertically.
   Takes a list of strings.
@@ -40,6 +48,7 @@
        (map #(str "   - " (string/trim %)))
        (mapcat #(format-note (string/split % #"\n")))
        (string/join "\n")
+       (append-str "\n")
        (conj `[println "  Notes:\n"])
        (seq)))
 
@@ -119,7 +128,8 @@
                   (pr-str return-value)))
          (remove empty?)
          (string/join "\n")
-         (str "   ➜ "))))
+         (prepend-str "   ➜ ")
+         (append-str "\n"))))
 
 (defn format-title
   "Display a title indented with 2 spaces and an underline.
@@ -128,7 +138,7 @@
   [titles]
   (let [title (apply str "  # " titles)
         underline (apply str "\n  " (repeat (count title) "–"))
-        title (str title underline)]
+        title (str title underline "\n")]
     `(println ~title)))
 
 (defn eval-form?
@@ -147,7 +157,8 @@
   Returns a form to run a sequence of forms."
   [forms]
   (let [output (seq forms)]
-    `(do ~@output)))
+    `(do ~@output
+         (println ""))))
 
 (defn ->seq
   "Checks if form is a sequence otherwise makes a sequence"
@@ -164,7 +175,7 @@
   (let [[form-head & form-args] (->seq form)]
     (case form-head
       notes   (format-notes form-args)
-      run     `(eval ~(run-code form-args))
+      run     (run-code form-args)
       title   (format-title form-args)
       nil)))
 
@@ -174,10 +185,7 @@
   [output & form-lists]
   (->> form-lists
        (remove empty?)
-       (reduce conj (vec output))
-       (append `(println ""))))
-
-
+       (reduce conj (vec output))))
 
 (defmacro lesson
   "Render code and its output grouped as a lesson from a chapter.
@@ -192,8 +200,7 @@
   "
   [section-id title & forms]
   (loop [forms forms
-         output `[(println (str "Chapter " ~section-id " :: " ~title "\n"))]]
-    (pprint {:output output})
+         output `[(println ~(str "Chapter " section-id " :: " title "\n"))]]
     (if (empty? forms)
       (format-output output)
       (let [form (first forms)
@@ -207,7 +214,7 @@
             (recur remaining
                    (display output
                             (format-code eval-forms)
-                            `(println (format-eval ~(run-code eval-forms)))))))))))
+                            `(println (format-eval '~(run-code eval-forms)))))))))))
 
 (comment
   (macroexpand
@@ -271,4 +278,11 @@
           (title "Title")
           (run (def x 3))
           (+ x 1))
+  (macroexpand '(lesson 10
+                  "Lesson title"
+                  (notes "Note")
+                  (+ 1 2)
+                  (title "Title")
+                  (run (def x 3))
+                  (+ x 1)))
   (empty? 2))

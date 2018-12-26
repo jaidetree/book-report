@@ -111,7 +111,7 @@
   [form]
   (with-out-str-and-value (eval form)))
 
-(defn format-eval
+(defn format-eval-results
   "Evaluates forms, captures output, and aligns it to the indented eval column.
   Takes a list of form expressions.
   Returns list of clojure forms to print code evaluation results."
@@ -130,6 +130,13 @@
          (string/join "\n")
          (prepend-str "   ➜ ")
          (append-str "\n"))))
+
+(defn format-eval
+  "Formats a form to be captured and evaluated later at run time.
+  Takes a list of forms to evaluate.
+  Returns a list of forms to evaluate and format the output from the forms."
+  [forms]
+  `(println (format-eval-results '~(run-code forms))))
 
 (defn format-title
   "Display a title indented with 2 spaces and an underline.
@@ -167,7 +174,15 @@
       form
       (list ::value form)))
 
-(defn process-internal-forms
+(defn display
+  "Takes a vector of forms to evaluate and a list of forms to append.
+  Returns a vector of forms with new lists conjoined to the end."
+  [output & form-lists]
+  (->> form-lists
+       (remove empty?)
+       (reduce conj (vec output))))
+
+(defn process-internal-form
   "Process a form if it contains an internal form such as notes, run, or title.
   Takes a form like `'(+ 1 2)`
   Returns a list of forms to evaluate."
@@ -179,17 +194,32 @@
       title   (format-title form-args)
       nil)))
 
-(defn display
-  "Takes a vector of forms to evaluate and a list of forms to append.
-  Returns a vector of forms with new lists conjoined to the end."
-  [output & form-lists]
-  (->> form-lists
-       (remove empty?)
-       (reduce conj (vec output))))
+(defn process-standard-forms
+  "Handles standard clojure evaluation forms within a lesson.
+  This allows the user to specify (lesson 1 \"title\"
+                                            (def x 1)
+                                            (+ x 1)).
+  Takes a list of forms, some may be internal forms.
+  Returns a vector of remaining forms to process and updated output."
+  [forms output]
+  (let [[eval-forms remaining] (split-with eval-form? forms)]
+    [remaining (display output
+                        (format-code eval-forms)
+                        (format-eval eval-forms))]))
+
+(defn build-output
+  "Builds up the output to return from the lesson macro.
+  Takes a list of forms provided to the lesson.
+  Returns a list of remaining forms to process and updated output."
+  [[form & remaining :as forms] output]
+  (if (eval-form? form)
+    (process-standard-forms forms output)
+    [remaining (display output
+                        (process-internal-form form))]))
 
 (defmacro lesson
   "Render code and its output grouped as a lesson from a chapter.
-  Takes a section-id number, title string, notes, and code forms.
+  Takes a chapter name, title string, notes, and code forms.
   Returns a list of expressions to display it nicely.
   (lesson 1
           \"Calling functions\"
@@ -198,23 +228,13 @@
           (run (def add +))
           (add 1 1))
   "
-  [section-id title & forms]
+  [chapter title & forms]
   (loop [forms forms
-         output `[(println ~(str "Chapter " section-id " :: " title "\n"))]]
+         output `[(println ~(str "Chapter " chapter " :: " title "\n"))]]
     (if (empty? forms)
       (format-output output)
-      (let [form (first forms)
-            remaining (rest forms)
-            parsed-forms (process-internal-forms form)]
-        (cond
-          (some? parsed-forms)     (recur remaining
-                                          (display output parsed-forms))
-          :else
-          (let [[eval-forms remaining] (split-with eval-form? forms)]
-            (recur remaining
-                   (display output
-                            (format-code eval-forms)
-                            `(println (format-eval '~(run-code eval-forms)))))))))))
+      (let [[remaining output] (build-output forms output)]
+        (recur remaining output)))))
 
 (comment
   (macroexpand
@@ -222,67 +242,10 @@
             "This is a test lesson"
             (notes  "Should return 2")
             (+ 1 1)))
-  (lesson 0
-          "Calling functions"
-          (title "Add")
-          (notes "Should return 2")
-          (+ 1 1))
   (lesson 1
-          "This is a test lesson"
-          (notes  "Should return 2")
-          (+ 1 1))
-  (lesson 2
-          "This is a test lesson"
-          (notes "Should return 2")
-          (+ 1 1)
-          (+ 2 3))
-  (lesson 3
-          "This is a test lesson"
-          (+ 1 1))
-  (lesson 4
-          "This is a test lesson"
-          (notes  "Should return 2
-                   Plus another note")
-          (+ 1 1))
-  (lesson 5
-          "This is a test lesson"
-          (notes  "Should return 2")
-          (+ 1 1))
-  (lesson 6
-          "This is a test lesson"
-          (notes "Should return 2")
-          (+ 1 3)
-          (notes "x")
-          2)
-  (lesson 7
-          "This is a test lesson"
-          (notes "Should return 2")
-          (run (defn add [x] (+ x 3)))
-          (notes "x")
-          (add 3))
-  (lesson 8
-          "This is a test lesson"
-          (notes "Should return 2")
-          (run (defn add [x] (+ x 3)))
-          (title "Look at x")
-          (notes "x")
-          (add 3))
-  (lesson 9
-          "This is a test lesson"
-          (println "hello world")
-          (+ 1 2))
-  (lesson 10
           "Lesson title"
           (notes "Note")
           (+ 1 2)
           (title "Title")
           (run (def x 3))
-          (+ x 1))
-  (macroexpand '(lesson 10
-                  "Lesson title"
-                  (notes "Note")
-                  (+ 1 2)
-                  (title "Title")
-                  (run (def x 3))
-                  (+ x 1)))
-  (empty? 2))
+          (+ x 1)))

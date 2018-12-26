@@ -4,7 +4,6 @@
             [clojure.string :refer [split]]
             [clojure.pprint :refer [pprint]]))
 
-
 (deftest format-return-test
   (testing "format-return"
     (testing "Should return a string with no indentation with 1 or less line"
@@ -92,14 +91,20 @@
       (is (= ["hello world\n" 3]
              (eval-str '(do (println "hello world") (+ 1 2))))))))
 
-(deftest format-eval-test
-  (testing "format-eval"
+(deftest format-eval-results-test
+  (testing "format-eval-results"
     (testing "Should evaluate forms and format the output as indented lines"
       (is (= "   ➜ hello world\n      3\n"
-             (format-eval '(do (println "hello world") (+ 1 2))))))
+             (format-eval-results '(do (println "hello world") (+ 1 2))))))
     (testing "Should format lines without any output"
-     (is (= "   ➜ 3\n"
-            (format-eval '(do (+ 1 2))))))))
+      (is (= "   ➜ 3\n"
+            (format-eval-results '(do (+ 1 2))))))))
+
+(deftest format-eval-test
+  (testing "format-eval-test"
+    (testing "Should format forms to print the formatted evaluation results"
+      (is (= `(println (format-eval-results ~''(do (+ 1 2))))
+             (format-eval '((+ 1 2))))))))
 
 (deftest format-title-test
   (testing "format-title"
@@ -131,20 +136,25 @@
       (is (= '(:book-report.core/value 2)
              (->seq 2))))))
 
-(deftest process-internal-forms-test
-  (testing "process-internal-forms"
+(deftest process-internal-form-test
+  (testing "process-internal-form"
     (testing "Should return list of forms to display notes"
       (is (= `(println "  Notes:\n" "   - Note\n")
-             (process-internal-forms '(notes "Note")))))
+             (process-internal-form '(notes "Note")))))
     (testing "Should return list of forms to run code"
       (is (= `(do (def ~'x 42))
-             (process-internal-forms '(run (def x 42))))))
+             (process-internal-form '(run (def x 42))))))
     (testing "Should return list of forms to display a title"
       (is (= `(println "  # Title\n  –––––––––\n")
-             (process-internal-forms '(title "Title")))))
+             (process-internal-form '(title "Title")))))
     (testing "Should return nil on normal forms"
       (is (= nil
-             (process-internal-forms '(+ 1 2)))))))
+             (process-internal-form '(+ 1 2)))))))
+
+(deftest process-standard-forms-test
+  (testing "process-standard-forms"
+    (testing "Should return list of remaining forms and output")))
+
 
 (deftest display-test
   (testing "display"

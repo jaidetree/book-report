@@ -40,7 +40,7 @@
   Returns a list of strings."
   [[note & lines]]
   (->> lines
-       (map #(str "     " (string/trim %)))
+       (map #(str "      " (string/trim %)))
        (cons note)))
 
 (defn format-notes
@@ -49,11 +49,12 @@
   Returns sequence of clojure forms to print list of notes."
   [notes]
   (->> notes
-       (map #(str "   - " (string/trim %)))
+       (map #(str "    - " (string/trim %)))
        (mapcat #(format-note (string/split % #"\n")))
        (string/join "\n")
+       (prepend-str "  Notes:\n")
        (append-str "\n")
-       (conj `[println "  Notes:\n"])
+       (conj `[println])
        (seq)))
 
 (defn format-code-lines
@@ -132,7 +133,7 @@
                   (pr-str return-value)))
          (remove empty?)
          (string/join "\n")
-         (prepend-str "   ➜ ")
+         (prepend-str "   -> ")
          (append-str "\n"))))
 
 (defn format-eval
@@ -246,10 +247,27 @@
             "This is a test lesson"
             (notes  "Should return 2")
             (+ 1 1)))
+
   (lesson 1
           "Lesson title"
           (notes "Note")
           (+ 1 2)
           (title "Title")
           (run (def x 3))
-          (+ x 1)))
+          (+ x 1))
+
+  (lesson 1 "What can the lesson macro do?"
+    (title "Overview")
+    (notes "Display notes"
+           "Run expressions"
+           "Evaluate forms"
+           "View results")
+    (run (def msg "I'm behind the scenes"))
+    (println (str msg  ". Now I'm visible!")))
+
+  (lesson 2 "Run Example"
+    (run (def x 3)
+         (def y 2)))
+
+  (lesson 3 "Title Example"
+    (title "Underlined Title")))

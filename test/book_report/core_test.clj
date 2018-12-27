@@ -153,8 +153,24 @@
 
 (deftest process-standard-forms-test
   (testing "process-standard-forms"
-    (testing "Should return list of remaining forms and output")))
+    (testing "Should return list of remaining forms and output"
+      (is (= [() '[(clojure.core/println "  (+ 1 2)")
+                   (clojure.core/println
+                    (book-report.core/format-eval-results
+                      (quote (do (+ 1 2)))))]]
+             (process-standard-forms '((+ 1 2)) '[]))))))
 
+(deftest build-output-test
+  (testing "build-output-test"
+    (testing "Should evaluate standard clojure forms"
+      (= [() '[(clojure.core/println "  (+ 1 2)"
+                   (clojure.core/println
+                    (book-report.core/format-eval-results
+                      (quote (do (+ 1 2))))))]]
+         (build-output '((+ 1 2)) [])))
+    (testing "Should evaluate special in-macro forms"
+      (= [() '[(do (def x 3))]]
+         (build-output '((run (def x 3))) [])))))
 
 (deftest display-test
   (testing "display"

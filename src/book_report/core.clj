@@ -23,10 +23,14 @@
    (conj (vec list) (f item list))))
 
 (defn prepend-str
+  "Takes a partial string and aggregate string.
+  Returns partial string prepended to beginning of aggregate string."
   [substr s]
   (str substr s))
 
 (defn append-str
+  "Takes a partial string and aggregate string.
+  Returns aggregate string with partial string appended to end."
   [substr s]
   (str s substr))
 

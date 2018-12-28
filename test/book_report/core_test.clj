@@ -39,14 +39,14 @@
 (deftest format-note-test
  (testing "format-note"
    (testing "Should append indented lines to a note str"
-     (is (= ["hello" "     world"]
+     (is (= ["hello" "      world"]
             (format-note ["hello" "world"]))))))
 
 (deftest format-notes-test
   (testing "format-notes"
     (testing "Should return a list of clojure expressions to print notes"
-      (is (= `(println "  Notes:\n"
-                       "   - hello\n   - world\n     again.\n")
+      (is (= '(clojure.core/println
+               "  Notes:\n    - hello\n    - world\n      again.\n")
              (format-notes ["hello" "world\nagain."]))))))
 
 (deftest format-code-lines-test
@@ -94,10 +94,10 @@
 (deftest format-eval-results-test
   (testing "format-eval-results"
     (testing "Should evaluate forms and format the output as indented lines"
-      (is (= "   ➜ hello world\n      3\n"
+      (is (= "   -> hello world\n      3\n"
              (format-eval-results '(do (println "hello world") (+ 1 2))))))
     (testing "Should format lines without any output"
-      (is (= "   ➜ 3\n"
+      (is (= "   -> 3\n"
             (format-eval-results '(do (+ 1 2))))))))
 
 (deftest format-eval-test
@@ -139,7 +139,7 @@
 (deftest process-internal-form-test
   (testing "process-internal-form"
     (testing "Should return list of forms to display notes"
-      (is (= `(println "  Notes:\n" "   - Note\n")
+      (is (= `(println "  Notes:\n    - Note\n")
              (process-internal-form '(notes "Note")))))
     (testing "Should return list of forms to run code"
       (is (= `(do (def ~'x 42))
@@ -199,11 +199,11 @@
               "    - Note"
               ""
               "  (+ 1 2)"
-              "   ➜ 3"
+              "   -> 3"
               ""
               "  # Title"
               "  –––––––––"
               ""
               "  (+ x 1)"
-              "   ➜ 4"]
+              "   -> 4"]
             (capture-lesson))))))

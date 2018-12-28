@@ -69,9 +69,18 @@ Chapter 1 :: What can the lesson macro do?
 
 ## API
 
+_variadic macro_
 ```
-(lesson chapter title & body)
+(lesson [chapter title & body])
 ```
+
+**chapter** _string_ — Chapter identifier like `"1.1.1"` or `1.2`.
+
+**title** _string_ — Section title string
+
+**& body** _seq_ — Clojure form sequences including special forms documented below.
+
+Example: `(+ 1 2)`
 
 ## Special Forms
 

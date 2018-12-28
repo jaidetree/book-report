@@ -1,4 +1,8 @@
-# ![Book Report Logo][book-report-logo] Book Report
+<p align="center">
+  <img src="./doc/book_report_logo.svg" width="700" alt="Book Report Logo" />
+</p>
+
+# Book Report
 
 [![Clojars Project][clojars-shield]][clojars-url] [![Build Status][travis-shield]][travis-url]
 
@@ -157,5 +161,7 @@ at https://www.gnu.org/software/classpath/license.html.
 [clojars-svg]: https://clojars.org/book-report/latest-version.svg
 [travis-shield]: https://travis-ci.com/jayzawrotny/book-report.svg?branch=master
 [travis-url]: https://travis-ci.com/jayzawrotny/book-report
-[book-report-logo]: https://
+[book-report-logo]: ./doc/images/logo_10.svg
+[book-report-logo2]: ./doc/images/logo_12.svg
+[book-report-logo3]: ./doc/images/logo_13.svg
 [screenshot]: ./doc/screenshot.png

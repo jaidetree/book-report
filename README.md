@@ -121,6 +121,22 @@ Chapter 3 :: Title Example
 
 ```
 
+## What Next?
+
+If there is the interest or more adoption of this library the next feature should be a function to extend the internal forms. This should behave similarly to clojure.test's `assert-expr` function. Users should be able to extend a map or multi-method to provide new special forms or replace existing ones.
+
+Another area we could focus on is supporting ClojureScript. Please let me know if either of these features would help. If you have other ideas how to improve this library please create an issue to discuss it or a pull request.
+
+## Known Issues
+
+Given the nature of this library and macros in general it's difficult to know how all code will behave within a lesson wrapper. If you run into any issues please report an issue. However, please note I may not be able to accommodate all edge cases.
+
+## Contributing
+
+If you would like to contribute please create a pull request and explain what the problem is, what your solution is, and how your solution solves the problem.
+
+I'm also open to ideas, features, and code-review. Clojure is still relatively new to me and I know the source can be improved.
+
 ## License
 
 Copyright © 2018 Jay Zawrotny

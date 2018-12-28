@@ -8,15 +8,48 @@
 
 ![Book Report in Atom Screenshot][screenshot]
 
-Book Report provides a Clojure macro to organize topics, sections, notes, code, and evaluation results. Ideal for typing examples or solving exercises along with a programming book in Clojure.
+Book Report provides a Clojure macro to turn Clojure files into an interactive notebook to organize your learning, making it easier to revisit projects without losing context.
 
-Lessons can run within a file or individually within a REPL.
+```clojure
+(lesson 1 "What does a lesson look like?"
+  (title "Lesson Introduction")
+  (notes "Organize your clojure files like this"
+         "Standard clojure forms will be displayed
+         and evaluation results shown below")
+  (+ 1 2))
+```
 
-## Why
+```
+Chapter 1 :: What does a lesson look like?
 
-Going through Daniel Higginbotham's [Clojure for the Brave and True][brave-true] myself I wanted something notebook-like to comment on behavior that would show the code and the evaluation results. This makes it easier to come back to a chapter and see where I left off along with revisiting previous chapter notes to see a running summary of the ideas.
+  # Lesson Introduction
+  –––––––––––––––––––––––
 
-## Installation
+  Notes:
+    - Organize your clojure files like this
+    - Standard clojure forms will be displayed
+      and evaluation results shown below
+
+  (+ 1 2)
+   -> 3
+```
+
+## :star: Features
+
+- Lesson macro helps structure your learning into personal notebook files.
+- Revisit projects later by recording your thought process and observations.
+- Run lessons from the REPL or a file.
+- Distribute repos using the lesson macro to showcase an API.
+- Not dependent on any REPL tooling or specific Clojure environment.
+- Avoid having to maintain eval results in your code files.
+
+## :question: Why
+
+Going through Daniel Higginbotham's [Clojure for the Brave and True][brave-true] myself I wanted something notebook-like to provide structure so that I can revisit later and not lose context about what I wrote or what example code does.
+
+I tried many existing notebook solutions but there was always some wall where a Clojure feature was not supported.
+
+## :rocket: Installation
 
 [![Book Report on Clojars][clojars-svg]][clojars-url]
 
@@ -32,7 +65,7 @@ Clojure tools.deps users add the coords to your `deps.edn`:
 {:deps {book-report {:mvn/version "0.1.0"}}}
 ```
 
-## Usage
+## :flashlight: Usage
 
 ```clojure
 (ns some-book.chapter-1
@@ -45,7 +78,7 @@ Clojure tools.deps users add the coords to your `deps.edn`:
          "Evaluate forms"
          "View results")
   (run (def msg "I'm behind the scenes"))
-  (println (str msg  " but I'm visible!")))
+  (println (str msg  " but now I'm visible!")))
 ```
 
 Which prints:
@@ -62,17 +95,19 @@ Chapter 1 :: What can the lesson macro do?
     - Evaluate forms
     - View results
 
-  (println (str msg "but now I'm visible!"))
-   -> I'm behind the scenes. Now I'm visible!
+  (println (str msg " but now I'm visible!"))
+   -> I'm behind the scenes but now I'm visible!
       nil
 ```
 
-## API
+If you save that snippet as a file you can always revisit it by running it with `clj` or `lein run`.
 
-_variadic macro_
+## :electric_plug: API
+
 ```
 (lesson [chapter title & body])
 ```
+_A variadic macro to print code and evaluations as a lesson._
 
 **chapter** _string_ — Chapter identifier like `"1.1.1"` or `1.2`.
 
@@ -82,7 +117,7 @@ _variadic macro_
 
 Example: `(+ 1 2)`
 
-## Special Forms
+## :nut_and_bolt: Special Forms
 
 Some forms in the body are handled differently within the body of the lesson macro.
 
@@ -134,21 +169,22 @@ Chapter 3 :: Title Example
 
 ```
 
-## What Next?
+## :white_check_mark: What Next?
 
-If there is the interest or more adoption of this library the next feature should be a function to extend the internal forms. This should behave similarly to clojure.test's `assert-expr` function. Users should be able to extend a map or multi-method to provide new special forms or replace existing ones.
+- [ ] Allow custom special forms and handlers
+- [ ] ClojureScript support
 
-Another area we could focus on is supporting ClojureScript. Please let me know if either of these features would help. If you have other ideas how to improve this library please create an issue to discuss it or a pull request.
+Please let me know if either of these features would help, or any other ideas how I can improve this library :smile:
 
-## Known Issues
+## :rotating_light: Known Issues
 
-Given the nature of this library and macros in general it's difficult to know how all code will behave within a lesson wrapper. If you run into any issues please report an issue. However, please note I may not be able to accommodate all edge cases.
+It's unknown how all code will behave within a lesson wrapper. If you run into any problems, errors, or unexpected behaviors please create an issue in this repo.
 
-## Contributing
+## :bulb: Contributing
 
-If you would like to contribute please create a pull request and explain what the problem is, what your solution is, and how your solution solves the problem.
+If you would like to contribute please create a pull request and explain what the problem is, and how your solution solves the problem.
 
-I'm also open to ideas, features, and code-review. Clojure is still relatively new to me and I know the source can be improved.
+I'm also open to new features, refinements, and code-review. Clojure is still relatively new to me and I know the source can be improved.
 
 ## License
 
@@ -170,7 +206,4 @@ at https://www.gnu.org/software/classpath/license.html.
 [clojars-svg]: https://clojars.org/book-report/latest-version.svg
 [travis-shield]: https://travis-ci.com/jayzawrotny/book-report.svg?branch=master
 [travis-url]: https://travis-ci.com/jayzawrotny/book-report
-[book-report-logo]: ./doc/images/logo_10.svg
-[book-report-logo2]: ./doc/images/logo_12.svg
-[book-report-logo3]: ./doc/images/logo_13.svg
 [screenshot]: ./doc/screenshot.png

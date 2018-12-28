@@ -4,9 +4,9 @@
 
 ![Book Report in Atom Screenshot][screenshot]
 
-Book report provides a Clojure macro to format code into lessons. This library is most suitable for people creating repos to take notes, try examples, and solve exercise problems along with a Clojure book.
+Book Report provides a Clojure macro to organize topics, sections, notes, code, and evaluation results. Ideal for typing examples or solving exercises along with a programming book in Clojure.
 
-Lessons can be run within a file or individually within a REPL.
+Lessons can run within a file or individually within a REPL.
 
 ## Why
 

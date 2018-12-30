@@ -8,7 +8,7 @@
   Returns string of output lines followed by return value."
   [return-value lines]
   (str
-   (when (> (count lines) 1)
+   (when (pos? (count lines))
      "      ")
    return-value))
 
@@ -127,11 +127,9 @@
          (map string/trim)
          (map #(str "      " %))
          (cons first-line)
-         (append format-return
-                 (str
-                  (when (not-empty output) "      ")
-                  (pr-str return-value)))
          (remove empty?)
+         (append format-return
+                 (pr-str return-value))
          (string/join "\n")
          (prepend-str "   -> ")
          (append-str "\n"))))

@@ -9,7 +9,7 @@
     (testing "Should return a string with no indentation with 1 or less line"
       (is (= "[1 2 3]"
              (format-return [1 2 3] [])))
-      (is (= "[1 2 3]"
+      (is (= "      [1 2 3]"
              (format-return [1 2 3] ["line"]))))
     (testing "Should return a string indented with 2 or more lines"
       (is (= "      [1 2 3]"

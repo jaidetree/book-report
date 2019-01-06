@@ -204,6 +204,6 @@ at https://www.gnu.org/software/classpath/license.html.
 [clojars-shield]: https://img.shields.io/clojars/v/book-report.svg
 [clojars-url]: https://clojars.org/book-report
 [clojars-svg]: https://clojars.org/book-report/latest-version.svg
-[travis-shield]: https://travis-ci.com/jayzawrotny/book-report.svg?branch=master
-[travis-url]: https://travis-ci.com/jayzawrotny/book-report
+[travis-shield]: https://travis-ci.com/eccentric-j/book-report.svg?branch=master
+[travis-url]: https://travis-ci.com/eccentric-j/book-report
 [screenshot]: ./doc/screenshot.png

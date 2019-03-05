@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## master (unreleased)
+
+## 0.1.1 - 2019-03-05
 ### Changed
 - [#1](https://github.com/eccentric-j/book-report/issues/1): Replaced screenshot to reference actual use case
 

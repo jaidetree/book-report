@@ -1,4 +1,4 @@
-(defproject book-report "0.1.1-SNAPSHOT"
+(defproject book-report "0.1.1"
   :description "A Clojure library to ease learning Clojure from books."
   :url "https://github.com/eccentric-j/book-report"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
